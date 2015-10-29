@@ -4,6 +4,8 @@
 #include <vector>
 #include <limits.h>
 #include <math.h>
+#include <algorithm>
+#include <stack>
 
 using namespace std;
 
@@ -15,7 +17,14 @@ struct point
 };
 
 double min(double x, double y);
-void sortByCos(point best, vector<point> pVector);
+void sortByCos(point best, vector<point> &pVector);
+bool isConvex(vector<point> pVector);
+
+bool angleDesc(const point& p1, const point& p2)
+{
+	return p1.angle > p2.angle;
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -84,11 +93,18 @@ int main(int argc, char * argv[])
 
 		sortByCos(best, pVector);
 	
+		for(int i = 0; i < pVector.size(); i++)
+			cout << pVector[i].angle << " ";
+		cout << endl;
+	
+		bool convex = isConvex(pVector);
+
 		pVector.clear();
 		cout << "CLEAR!" << endl;
 	}
 }
 
+//Corwin
 double min(double a, double b)
 {
   if (a < b)
@@ -96,7 +112,7 @@ double min(double a, double b)
   return b;
 }
 
-void sortByCos(point best, vector<point> pVector)
+void sortByCos(point best, vector<point> &pVector)
 {
 	point u;
 	for(int i = 0; i < pVector.size(); i++)
@@ -112,4 +128,18 @@ void sortByCos(point best, vector<point> pVector)
 		cout << "length: " << u.y << endl;
 		cout << "angle: " << pVector[i].angle << endl;
 	}			
+
+	sort(pVector.begin(), pVector.end(), angleDesc);
+}
+
+bool isConvex(vector<point> pVector)
+{
+	Stack pStack;
+	
+	int i = 0;
+
+	for(i; i < 4; i++)
+	{
+		pStack.push(pVector[i]);
+	}
 }
