@@ -13,18 +13,14 @@ struct point
 {
 	double x;
 	double y;
-	double angle;
 };
 
-double min(double x, double y);
-void sortByCos(point best, vector<point> &pVector);
+//double min(double x, double y);
+//void sortByCos(point best, vector<point> &pVector);
 bool isConvex(vector<point> pVector);
-
-bool angleDesc(const point& p1, const point& p2)
-{
-	return p1.angle > p2.angle;
-}
-
+double direction(point a, point b, point c);
+double cross(point a, point b);
+double area(vector<point> pVector);
 
 int main(int argc, char * argv[])
 {
@@ -59,49 +55,109 @@ int main(int argc, char * argv[])
 			cout << temp.y << endl;
 			pVector.push_back(temp);
 		}
-		
-		point best;
-		best.x = INT_MAX;
-		best.y = INT_MAX;
-
-		int bestPos;
-
-		//code for getting lower left point
-		for(int i = 0; i < pVector.size(); i++)
-		{	
-			if(best.y == pVector[i].y)
-			{
-				if(pVector[i].x < best.x)
-				{
-					best.x = pVector[i].x;
-					bestPos = i;
-				}
-			}
-
-			if(pVector[i].y < best.y)
-			{
-				best.x = pVector[i].x;
-				best.y = pVector[i].y;
-				bestPos = i;
-			}			
-		}
-
-		cout << best.x << " " << best.y << " Besties" << endl; 
-
-		cout << "bestPos: " << bestPos << endl;				
-		pVector.erase(pVector.begin() + bestPos);
-
-		sortByCos(best, pVector);
-	
-		for(int i = 0; i < pVector.size(); i++)
-			cout << pVector[i].angle << " ";
-		cout << endl;
 	
 		bool convex = isConvex(pVector);
+
+		if(convex)
+			cout << "CONVEX" << endl;
+		else
+		{
+			cout << "NOT CONVEX" << endl;
+			continue;
+		}
+
+		cout << "Area: " << area(pVector) << endl;
 
 		pVector.clear();
 		cout << "CLEAR!" << endl;
 	}
+}
+
+bool isConvex(vector<point> pVector)
+{
+	bool negative = false;
+	int n = pVector.size();
+
+	for(int i = 0; i < n; i++)
+	{
+		if(direction(pVector[i%n], pVector[(i+1)%n], pVector[(i+2)%n]) > 0)
+		{
+			if ( negative == true)
+				return false;	
+		}			
+		else
+			negative = true;	
+	}		
+	
+	return true;
+}
+
+//Corwin
+double direction(point a, point b, point c)
+{
+	point ab;
+	point bc;
+	double result;
+
+	ab.x = b.x - a.x;
+	ab.y = b.y - a.y;
+	bc.x = c.x - b.x;
+	bc.y = c.y - b.y;
+	result =  cross(ab, bc);
+	if (fabs(result) < 1.0e-6)
+		result = 0.0;
+	return result;
+}
+
+
+//Corwin
+double cross(point a, point b)
+{
+	return a.x * b.y - a.y * b.x;
+}
+
+int bisection(vector<point> pVector, float lArea, float rArea)
+{
+	double cut = 0;
+	double maxX = 0;
+	double minX = FLT_MAX;
+	double midX = 0;
+
+	for(int i = 0; i < pVector.size; i++)
+	{
+		minX = min(minX, pVector[i]);
+		maxX = max(maxX, pVector[i]);
+	}
+
+	midX = (maxX - minX)/2;
+
+	if(lArea == rArea)
+		return cut;
+	if(lArea > rArea)
+
+	if(lArea < rArea) 
+
+	
+}
+
+//Corwin
+//edited by me
+double area(vector<point> pVector)
+{
+	int i;
+	int j;
+	double result;
+	int n = pVector.size();
+
+	result = 0;
+
+	for (i = 0; i < n; i++)
+	{
+		j = (i + 1) % n;
+		result += pVector[i].x * pVector[j].y;
+		result -= pVector[i].y * pVector[j].x;
+	}
+	return fabs(result / 2);
 }
 
 //Corwin
@@ -112,6 +168,14 @@ double min(double a, double b)
   return b;
 }
 
+double max(double a, double b)
+{
+	if(a > b)
+		return a;
+	return b;
+}
+
+/*
 void sortByCos(point best, vector<point> &pVector)
 {
 	point u;
@@ -130,16 +194,4 @@ void sortByCos(point best, vector<point> &pVector)
 	}			
 
 	sort(pVector.begin(), pVector.end(), angleDesc);
-}
-
-bool isConvex(vector<point> pVector)
-{
-	Stack pStack;
-	
-	int i = 0;
-
-	for(i; i < 4; i++)
-	{
-		pStack.push(pVector[i]);
-	}
-}
+}*/
