@@ -15,8 +15,7 @@ struct point
 	double y;
 };
 
-//double min(double x, double y);
-//void sortByCos(point best, vector<point> &pVector);
+
 bool isConvex(vector<point> pVector);
 double direction(point a, point b, point c);
 double cross(point a, point b);
@@ -24,6 +23,7 @@ double area(vector<point> pVector);
 bool intersect(point p1, point p2, point p3, point p4);
 int bisection(vector<point> pVector);
 bool on(point a, point b, point c);
+vector<point> topBotPoints(vector<point> pVector);
 
 int main(int argc, char * argv[])
 {
@@ -81,6 +81,7 @@ int main(int argc, char * argv[])
 bool isConvex(vector<point> pVector)
 {
 	bool negative = false;
+	bool positive = false;
 	int n = pVector.size();
 
 	for(int i = 0; i < n; i++)
@@ -88,10 +89,17 @@ bool isConvex(vector<point> pVector)
 		if(direction(pVector[i%n], pVector[(i+1)%n], pVector[(i+2)%n]) > 0)
 		{
 			if ( negative == true)
-				return false;	
+				return false;
+			else
+				positive = true;	
 		}			
 		else
-			negative = true;	
+		{
+			if (positive = true)
+				return false;
+			else	
+				negative = true;	
+		}
 	}		
 	
 	return true;
@@ -132,6 +140,31 @@ int bisection(vector<point> pVector)
 	double minY = FLT_MAX;
 	point botPoint;
 	point topPoint;	
+	vector<point> topBot;
+	
+	topBot = topBotPoints(pVector);
+
+	if(topBot.size() != 4)
+		cout << "Something went wrong" << endl;
+
+	for(int i = 0; i < topBot.size(); i++)
+	{
+		cout << "P" << i << ".x: " << topBot[i].x << endl;
+		cout << "P" << i << ".y: " << topBot[i].y << endl;
+	}
+}
+
+vector<point> topBotPoints(vector<point> pVector)
+{
+	int n = pVector.size();
+	double maxX = 0;
+	double minX = FLT_MAX;
+	double midX = 0;
+	double maxY = 0;
+	double minY = FLT_MAX;
+	point botPoint;
+	point topPoint;
+	vector<point> topBot;
 
 	for(int i = 0; i < n; i++)
 	{
@@ -141,7 +174,7 @@ int bisection(vector<point> pVector)
 		maxY = max(maxY, pVector[i].y);	
 	}
 
-	midX = (maxX - minX)/2;
+	midX = ((maxX - minX)/2 + minX);
 	
 	topPoint.x = midX;
 	topPoint.y = maxY + 1;
@@ -160,12 +193,18 @@ int bisection(vector<point> pVector)
 		cout << "pVector[i].y: " << pVector[i].y << endl;
 		cout << "pVector[i+1].x: " << pVector[(i+1) % n].x << endl;
 		cout << "PVector[i+1].y: " << pVector[(i+1) % n].y << endl;
-		test = intersect(botPoint, topPoint, pVector[i], pVector[i+1]);
+		test = intersect(botPoint, topPoint, pVector[i], pVector[(i+1) % n]);
 		if(test == true)
+		{
+			topBot.push_back(pVector[i]);
+			topBot.push_back(pVector[(i+1) % n]);
 			cout << "Intersect" << endl;
+		}
 		else
 			cout << "No Intersect" << endl;
 	}
+
+	return topBot;
 }
 
 bool intersect(point p1, point p2, point p3, point p4)
@@ -249,24 +288,3 @@ double max(double a, double b)
 		return a;
 	return b;
 }
-
-/*
-void sortByCos(point best, vector<point> &pVector)
-{
-	point u;
-	for(int i = 0; i < pVector.size(); i++)
-	{
-		u.x = pVector[i].x - best.x;
-		u.y = pVector[i].y - best.y;
-		double length = sqrt(u.x * u.x + u.y * u.y);
-
-		pVector[i].angle = u.x / length;
-	
- 		cout << "u.x: " << u.x << endl;
-		cout << "u.y: " << u.y << endl;
-		cout << "length: " << u.y << endl;
-		cout << "angle: " << pVector[i].angle << endl;
-	}			
-
-	sort(pVector.begin(), pVector.end(), angleDesc);
-}*/
