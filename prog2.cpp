@@ -161,7 +161,6 @@ double bisection(vector<point> pVector)
 		maxY = max(maxY, pVector[i].y);	
 	}
 
-
 	midX = ((maxX - minX)/2 + minX);
 	
 	topBotLines(pVector, botLine, topLine);
@@ -202,13 +201,29 @@ double bisection(vector<point> pVector)
 	cout << "leftArea: " << leftArea << endl;
 	cout << "rightArea: " << rightArea << endl;	
 
-	if(leftArea == rightArea)
-		return midX;
-	else
+	while(leftArea != rightArea)
 	{
-		bisection(leftPoints);
-		bisection(rightPoints);
+		if( leftArea > rightArea)
+		{
+			for(int i = 0; i < n; i++)
+			{
+				int n = leftPoints.size();				
+
+				minX = min(minX, pVector[i].x);
+				maxX = max(maxX, pVector[i].x);
+				minY = min(minY, pVector[i].y);
+				maxY = max(maxY, pVector[i].y);	
+			
+			
+			}		
+		}
+		else
+		{
+
+		}
 	}
+
+	return midX;
 }
 
 void topBotLines(vector<point> pVector, line &botLine, line &topLine)
@@ -296,11 +311,6 @@ bool intersect(point p1, point p2, point p3, point p4)
 	d2 = direction(p3, p4, p2);
 	d3 = direction(p1, p2, p3);
 	d4 = direction(p1, p2, p4);
-
-	cout << "d1: " << d1 << endl;
-	cout << "d2: " << d2 << endl;
-	cout << "d3: " << d3 << endl;
-	cout << "d4: " << d4 << endl;
 
 	if ((((d1 > 0) && (d2 < 0)) || ((d1 < 0) && (d2 > 0))) &&
 	(((d3 > 0) && (d4 < 0)) || ((d3 < 0) && (d4 > 0))))
