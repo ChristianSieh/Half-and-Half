@@ -27,7 +27,7 @@ double direction(point a, point b, point c);
 double cross(point a, point b);
 double area(vector<point> pVector);
 bool intersect(point p1, point p2, point p3, point p4);
-int bisection(vector<point> pVector);
+double bisection(vector<point> pVector);
 bool on(point a, point b, point c);
 void topBotLines(vector<point> pVector, line &botLine, line &topLine);
 
@@ -135,7 +135,7 @@ double cross(point a, point b)
 	return a.x * b.y - a.y * b.x;
 }
 
-int bisection(vector<point> pVector)
+double bisection(vector<point> pVector)
 {
 	int n = pVector.size();
 	double cut = 0;
@@ -148,13 +148,67 @@ int bisection(vector<point> pVector)
 	point topPoint;	
 	line botLine;
 	line topLine;
+	vector<point> leftPoints;
+	vector<point> rightPoints;
+	double leftArea = 0;
+	double rightArea = 0;
+
+	for(int i = 0; i < n; i++)
+	{
+		minX = min(minX, pVector[i].x);
+		maxX = max(maxX, pVector[i].x);
+		minY = min(minY, pVector[i].y);
+		maxY = max(maxY, pVector[i].y);	
+	}
+
+
+	midX = ((maxX - minX)/2 + minX);
 	
 	topBotLines(pVector, botLine, topLine);
+
+	topPoint.x = midX;
+	topPoint.y = (midX - topLine.p1.x) * topLine.slope + topLine.p1.y;
+	botPoint.x = midX;
+	botPoint.y = (midX - botLine.p1.x) * botLine.slope + botLine.p1.y;
 
 	cout << "TopLine.slope: " << topLine.slope << endl;
 	cout << "BotLine.slope: " << botLine.slope << endl;	
 
-	
+	cout << "topPoint.y: " << topPoint.y << endl;
+	cout << "botPoint.y: " << botPoint.y << endl;
+
+	leftPoints.push_back(topPoint);
+	leftPoints.push_back(botPoint);
+	rightPoints.push_back(topPoint);
+	rightPoints.push_back(botPoint);
+
+	for(int i = 0; i < n; i++)
+	{
+		if(pVector[i].x < midX)
+			leftPoints.push_back(pVector[i]);
+
+		else
+			rightPoints.push_back(pVector[i]);
+	}
+
+	for(int i = 0; i < leftPoints.size(); i++)
+		cout << "leftPoints: " << leftPoints[i].x << "," << leftPoints[i].y << endl;
+	for(int i = 0; i < rightPoints.size(); i++)
+		cout << "rightPoints: " << rightPoints[i].x << "," << rightPoints[i].y << endl;
+
+	leftArea = area(leftPoints);
+	rightArea = area(rightPoints);
+
+	cout << "leftArea: " << leftArea << endl;
+	cout << "rightArea: " << rightArea << endl;	
+
+	if(leftArea == rightArea)
+		return midX;
+	else
+	{
+		bisection(leftPoints);
+		bisection(rightPoints);
+	}
 }
 
 void topBotLines(vector<point> pVector, line &botLine, line &topLine)
