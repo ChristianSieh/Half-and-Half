@@ -27,7 +27,7 @@ double direction(point a, point b, point c);
 double cross(point a, point b);
 double area(vector<point> pVector);
 bool intersect(point p1, point p2, point p3, point p4);
-double bisection(vector<point> pVector);
+double bisection(vector<point> &pVector, double &leftOver, double &rightOver);
 bool on(point a, point b, point c);
 void topBotLines(vector<point> pVector, line &botLine, line &topLine);
 
@@ -35,6 +35,9 @@ int main(int argc, char * argv[])
 {
 	ifstream fin;
 	ofstream fout;
+	double leftOver = 0;
+	double rightOver = 0;
+	double cut = 0;
 	int numPoints = 0;
 	string fileNameExt = argv[1];
 
@@ -77,7 +80,13 @@ int main(int argc, char * argv[])
 
 		cout << "Area: " << area(pVector) << endl;
 
-		bisection(pVector);
+		while(true)
+		{
+			cut = bisection(pVector, leftOver, rightOver);
+			cout << "cut: " << cut << endl;			
+			if(leftOver == rightOver)
+				break;
+		}
 
 		pVector.clear();
 		cout << "CLEAR!" << endl;
@@ -135,23 +144,23 @@ double cross(point a, point b)
 	return a.x * b.y - a.y * b.x;
 }
 
-double bisection(vector<point> pVector)
+double bisection(vector<point> &pVector, double &leftOver, double &rightOver)
 {
 	int n = pVector.size();
-	double cut = 0;
 	double maxX = 0;
 	double minX = FLT_MAX;
 	double midX = 0;
 	double maxY = 0;
 	double minY = FLT_MAX;
+	double leftArea = 0;
+	double rightArea = 0;
+
 	point botPoint;
 	point topPoint;	
 	line botLine;
 	line topLine;
 	vector<point> leftPoints;
 	vector<point> rightPoints;
-	double leftArea = 0;
-	double rightArea = 0;
 
 	for(int i = 0; i < n; i++)
 	{
@@ -170,12 +179,6 @@ double bisection(vector<point> pVector)
 	botPoint.x = midX;
 	botPoint.y = (midX - botLine.p1.x) * botLine.slope + botLine.p1.y;
 
-	cout << "TopLine.slope: " << topLine.slope << endl;
-	cout << "BotLine.slope: " << botLine.slope << endl;	
-
-	cout << "topPoint.y: " << topPoint.y << endl;
-	cout << "botPoint.y: " << botPoint.y << endl;
-
 	leftPoints.push_back(topPoint);
 	leftPoints.push_back(botPoint);
 	rightPoints.push_back(topPoint);
@@ -190,37 +193,22 @@ double bisection(vector<point> pVector)
 			rightPoints.push_back(pVector[i]);
 	}
 
-	for(int i = 0; i < leftPoints.size(); i++)
-		cout << "leftPoints: " << leftPoints[i].x << "," << leftPoints[i].y << endl;
-	for(int i = 0; i < rightPoints.size(); i++)
-		cout << "rightPoints: " << rightPoints[i].x << "," << rightPoints[i].y << endl;
-
 	leftArea = area(leftPoints);
 	rightArea = area(rightPoints);
 
-	cout << "leftArea: " << leftArea << endl;
-	cout << "rightArea: " << rightArea << endl;	
-
-	while(leftArea != rightArea)
+	if( leftArea > rightArea)
 	{
-		if( leftArea > rightArea)
-		{
-			for(int i = 0; i < n; i++)
-			{
-				int n = leftPoints.size();				
-
-				minX = min(minX, pVector[i].x);
-				maxX = max(maxX, pVector[i].x);
-				minY = min(minY, pVector[i].y);
-				maxY = max(maxY, pVector[i].y);	
-			
-			
-			}		
-		}
-		else
-		{
-
-		}
+		rightOver += rightArea;
+		pVector.clear();
+		for(int i = 0; i < leftPoints.size(); i++)
+			pVector.push_back(leftPoints[i]);
+	}
+	else
+	{
+		leftOver += leftArea;
+		pVector.clear();
+		for(int i = 0; i < rightPoints.size(); i++)
+			pVector.push_back(rightPoints[i]);
 	}
 
 	return midX;
@@ -265,10 +253,10 @@ void topBotLines(vector<point> pVector, line &botLine, line &topLine)
 			topBotPoints.push_back( pVector[i]);
 			topBotPoints.push_back( pVector[(i+1) % n]);
 			pMax.push_back(max(pVector[i].y, pVector[(i + 1) %n].y));			
-			cout << "Intersect" << endl;
+		//	cout << "Intersect" << endl;
 		}
-		else
-			cout << "No Intersect" << endl;
+		//else
+		//	cout << "No Intersect" << endl;
 	}
 
 	for(int i = 0; i < pMax.size(); i++)
@@ -288,18 +276,12 @@ void topBotLines(vector<point> pVector, line &botLine, line &topLine)
 		topLine.p1 = topBotPoints[2];
 		topLine.p2 = topBotPoints[3];
 	}
-	cout << "topLine.p1.x: " << topLine.p1.x << endl;
-	cout << "topLine.p1.y: " << topLine.p1.y << endl;
-	cout << "topLine.p2.x: " << topLine.p2.x << endl;
-	cout << "topLine.p2.y: " << topLine.p2.y << endl;
-	cout << "fabs x top: " << fabs(topLine.p1.x - topLine.p2.x) << endl;
-	cout << "fabs y top: " << fabs(topLine.p1.y - topLine.p2.y) << endl;
-	cout << "fabs x bot: " << fabs(botLine.p1.x - botLine.p2.x) << endl;
-	cout << "fabs y bot: " << fabs(botLine.p1.y - botLine.p2.y) << endl;
+
 	topLine.slope = (fabs(topLine.p1.y - topLine.p2.y) / fabs(topLine.p1.x - topLine.p2.x));
 	botLine.slope = (fabs(botLine.p1.y - botLine.p2.y) / fabs(botLine.p1.x - botLine.p2.x));
 }
 
+//Corwin
 bool intersect(point p1, point p2, point p3, point p4)
 {
 	double d1;
@@ -331,6 +313,7 @@ bool intersect(point p1, point p2, point p3, point p4)
 	return false;
 }
 
+//Corwin
 bool on(point a, point b, point c)
 {
 	if (((min(a.x, b.x) <= c.x) && (c.x <= max(a.x, b.x))) &&
@@ -339,8 +322,6 @@ bool on(point a, point b, point c)
 
 	return false;
 }
-
-
 
 //Corwin
 //edited by me
