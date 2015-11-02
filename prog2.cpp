@@ -51,6 +51,7 @@ int main(int argc, char * argv[])
 	double cut = 0;
 	int numPoints = 0;
 	string fileNameExt = argv[1];
+	int caseCount = 0;
 
 	int splitPos = fileNameExt.find(".");
 	
@@ -86,23 +87,34 @@ int main(int argc, char * argv[])
 		else
 		{
 			cout << "NOT CONVEX" << endl;
+			fout << "Case " << caseCount << ": " << "No solution" << endl;
 			continue;
 		}
 
 		cout << "Area: " << area(pVector) << endl;
 
+		bool once = false;
+
 		while(true)
 		{
 			cut = bisection(pVector, leftOver, rightOver, cut);
-			//cout << "cut: " << cut << endl;
+
 			double test = abs(leftOver - rightOver);
- 			if( test <  0.0000001)
-				break;
+			if (test < 0.0000001)
+			{
+				if (once == true)
+					break;
+				once = true;
+			}
 		}
 
 		cout << "cut: " << fixed << setprecision(5) << cut << endl;
 		pVector.clear();
 		cout << "CLEAR!" << endl;
+
+		fout << "Case " << caseCount << ": " << cut << endl;
+
+		caseCount++;
 	}
 	cin >> leftOver;
 }
@@ -315,7 +327,7 @@ bool topBotLines(vector<point> pVector, line &botLine, line &topLine)
 
 	if (pMax.size() != 2)
 	{
-		int test = 0;
+		//cout << "ShortCircuit" << endl;
 		return true;
 	}
 
