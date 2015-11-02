@@ -6,6 +6,8 @@
 #include <math.h>
 #include <algorithm>
 #include <float.h>
+#include <math.h>
+#include <iomanip>
 
 using namespace std;
 
@@ -13,6 +15,15 @@ struct point
 {
 	double x;
 	double y;
+
+	bool operator==(const point& p)
+	{
+		if (this->x != p.x)
+			return false;
+		if (this->y != p.y)
+			return false;
+		return true;
+	}
 };
 
 struct line
@@ -27,9 +38,9 @@ double direction(point a, point b, point c);
 double cross(point a, point b);
 double area(vector<point> pVector);
 bool intersect(point p1, point p2, point p3, point p4);
-double bisection(vector<point> &pVector, double &leftOver, double &rightOver);
+double bisection(vector<point> &pVector, double &leftOver, double &rightOver, double oldMid);
 bool on(point a, point b, point c);
-void topBotLines(vector<point> pVector, line &botLine, line &topLine);
+bool topBotLines(vector<point> pVector, line &botLine, line &topLine);
 
 int main(int argc, char * argv[])
 {
@@ -82,15 +93,18 @@ int main(int argc, char * argv[])
 
 		while(true)
 		{
-			cut = bisection(pVector, leftOver, rightOver);
-			cout << "cut: " << cut << endl;			
-			if(leftOver == rightOver)
+			cut = bisection(pVector, leftOver, rightOver, cut);
+			//cout << "cut: " << cut << endl;
+			double test = abs(leftOver - rightOver);
+ 			if( test <  0.0000001)
 				break;
 		}
 
+		cout << "cut: " << fixed << setprecision(5) << cut << endl;
 		pVector.clear();
 		cout << "CLEAR!" << endl;
 	}
+	cin >> leftOver;
 }
 
 bool isConvex(vector<point> pVector)
@@ -110,7 +124,7 @@ bool isConvex(vector<point> pVector)
 		}			
 		else
 		{
-			if (positive = true)
+			if (positive == true)
 				return false;
 			else	
 				negative = true;	
@@ -132,7 +146,7 @@ double direction(point a, point b, point c)
 	bc.x = c.x - b.x;
 	bc.y = c.y - b.y;
 	result =  cross(ab, bc);
-	if (fabs(result) < 1.0e-6)
+	if (fabs(result) < 1.0e-9)
 		result = 0.0;
 	return result;
 }
@@ -144,16 +158,18 @@ double cross(point a, point b)
 	return a.x * b.y - a.y * b.x;
 }
 
-double bisection(vector<point> &pVector, double &leftOver, double &rightOver)
+double bisection(vector<point> &pVector, double &leftOver, double &rightOver, double oldMid)
 {
 	int n = pVector.size();
 	double maxX = 0;
 	double minX = FLT_MAX;
-	double midX = 0;
 	double maxY = 0;
 	double minY = FLT_MAX;
 	double leftArea = 0;
 	double rightArea = 0;
+	double tempLeft = 0;
+	double tempRight = 0;
+	bool shortCircuit = false;
 
 	point botPoint;
 	point topPoint;	
@@ -162,59 +178,99 @@ double bisection(vector<point> &pVector, double &leftOver, double &rightOver)
 	vector<point> leftPoints;
 	vector<point> rightPoints;
 
-	for(int i = 0; i < n; i++)
+	shortCircuit = topBotLines(pVector, botLine, topLine);
+
+	if (shortCircuit == true)
+	{
+		leftOver = rightOver;
+		return oldMid;
+	}
+
+	for (int i = 0; i < n; i++)
 	{
 		minX = min(minX, pVector[i].x);
 		maxX = max(maxX, pVector[i].x);
 		minY = min(minY, pVector[i].y);
-		maxY = max(maxY, pVector[i].y);	
+		maxY = max(maxY, pVector[i].y);
 	}
 
-	midX = ((maxX - minX)/2 + minX);
-	
-	topBotLines(pVector, botLine, topLine);
+	double midX = ((maxX - minX) / 2 + minX);
 
 	topPoint.x = midX;
-	topPoint.y = (midX - topLine.p1.x) * topLine.slope + topLine.p1.y;
+	topPoint.y = ((topLine.p2.y - topLine.p1.y) / (topLine.p2.x - topLine.p1.x)) * (midX - topLine.p1.x) + topLine.p1.y;
 	botPoint.x = midX;
-	botPoint.y = (midX - botLine.p1.x) * botLine.slope + botLine.p1.y;
+	botPoint.y = ((botLine.p2.y - botLine.p1.y) / (botLine.p2.x - botLine.p1.x)) * (midX - botLine.p1.x) + botLine.p1.y;
 
-	leftPoints.push_back(topPoint);
-	leftPoints.push_back(botPoint);
-	rightPoints.push_back(topPoint);
-	rightPoints.push_back(botPoint);
-
-	for(int i = 0; i < n; i++)
+	for (int i = 0; i < n; i++)
 	{
-		if(pVector[i].x < midX)
+		if (pVector[i].x < midX)
+		{
 			leftPoints.push_back(pVector[i]);
+		}
 
 		else
+		{
 			rightPoints.push_back(pVector[i]);
+		}
+
+		if (pVector[i] == botLine.p1 && pVector[(i + 1) % n] == botLine.p2 ||
+			pVector[i] == botLine.p2 && pVector[(i + 1) % n] == botLine.p1)
+		{
+			leftPoints.push_back(botPoint);
+			rightPoints.push_back(botPoint);
+		}
+
+		if (pVector[i] == topLine.p1 && pVector[(i + 1) % n] == topLine.p2 ||
+			pVector[i] == topLine.p2 && pVector[(i + 1) % n] == topLine.p1)
+		{
+			leftPoints.push_back(topPoint);
+			rightPoints.push_back(topPoint);
+		}
 	}
 
-	leftArea = area(leftPoints);
-	rightArea = area(rightPoints);
+	tempLeft = area(leftPoints);
+	tempRight = area(rightPoints);
+
+	leftArea = tempLeft + leftOver;
+	rightArea = tempRight + rightOver;
+
+	//cout << "leftArea: " << leftArea << endl;
+	//cout << "rightArea: " << rightArea << endl;
 
 	if( leftArea > rightArea)
 	{
-		rightOver += rightArea;
+		rightOver += tempRight;
 		pVector.clear();
 		for(int i = 0; i < leftPoints.size(); i++)
 			pVector.push_back(leftPoints[i]);
 	}
-	else
+	else if (rightArea > leftArea)
 	{
-		leftOver += leftArea;
+		leftOver += tempLeft;
 		pVector.clear();
 		for(int i = 0; i < rightPoints.size(); i++)
 			pVector.push_back(rightPoints[i]);
+	}
+	else
+	{
+		if (rightOver > leftOver)
+		{
+			leftOver += leftArea;
+			for (int i = 0; i < leftPoints.size(); i++)
+				pVector.push_back(leftPoints[i]);
+		}
+		else
+		{
+			rightOver += rightArea;
+			for (int i = 0; i < rightPoints.size(); i++)
+				pVector.push_back(rightPoints[i]);
+		}
 	}
 
 	return midX;
 }
 
-void topBotLines(vector<point> pVector, line &botLine, line &topLine)
+bool topBotLines(vector<point> pVector, line &botLine, line &topLine)
 {
 	int n = pVector.size();
 	double maxX = 0;
@@ -245,22 +301,23 @@ void topBotLines(vector<point> pVector, line &botLine, line &topLine)
 
 	for(int i = 0; i < n; i++)
 	{
-		bool test;	
+		bool intersection;	
 
-		test = intersect(midBot, midTop, pVector[i], pVector[(i+1) % n]);
-		if(test == true)
+		intersection = intersect(midBot, midTop, pVector[i], pVector[(i+1) % n]);
+
+		if(intersection == true)
 		{
 			topBotPoints.push_back( pVector[i]);
 			topBotPoints.push_back( pVector[(i+1) % n]);
-			pMax.push_back(max(pVector[i].y, pVector[(i + 1) %n].y));			
-		//	cout << "Intersect" << endl;
+			pMax.push_back(max(pVector[i % n].y, pVector[(i + 1) % n].y));			
 		}
-		//else
-		//	cout << "No Intersect" << endl;
 	}
 
-	for(int i = 0; i < pMax.size(); i++)
-		cout << "pMax: " << pMax[i] << endl;
+	if (pMax.size() != 2)
+	{
+		int test = 0;
+		return true;
+	}
 
 	if(pMax[0] > pMax[1])
 	{
