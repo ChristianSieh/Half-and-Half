@@ -6,8 +6,8 @@
 #include <math.h>
 #include <algorithm>
 #include <float.h>
-#include <math.h>
 #include <iomanip>
+#include <cmath>
 
 using namespace std;
 
@@ -51,7 +51,7 @@ int main(int argc, char * argv[])
 	double cut = 0;
 	int numPoints = 0;
 	string fileNameExt = argv[1];
-	int caseCount = 0;
+	int caseCount = 1;
 
 	int splitPos = fileNameExt.find(".");
 	
@@ -98,7 +98,6 @@ int main(int argc, char * argv[])
 		while(true)
 		{
 			cut = bisection(pVector, leftOver, rightOver, cut);
-
 			double test = abs(leftOver - rightOver);
 			if (test < 0.0000001)
 			{
@@ -112,11 +111,10 @@ int main(int argc, char * argv[])
 		pVector.clear();
 		cout << "CLEAR!" << endl;
 
-		fout << "Case " << caseCount << ": " << cut << endl;
+		fout << "Case " << caseCount << ": " << fixed << setprecision(5) << cut << endl;
 
 		caseCount++;
 	}
-	cin >> leftOver;
 }
 
 bool isConvex(vector<point> pVector)
@@ -190,7 +188,7 @@ double bisection(vector<point> &pVector, double &leftOver, double &rightOver, do
 	vector<point> leftPoints;
 	vector<point> rightPoints;
 
-	shortCircuit = topBotLines(pVector, botLine, topLine);
+	shortCircuit = topBotLines(pVector, botLine, topLine);	
 
 	if (shortCircuit == true)
 	{
@@ -206,6 +204,7 @@ double bisection(vector<point> &pVector, double &leftOver, double &rightOver, do
 		maxY = max(maxY, pVector[i].y);
 	}
 
+	
 	double midX = ((maxX - minX) / 2 + minX);
 
 	topPoint.x = midX;
@@ -245,9 +244,6 @@ double bisection(vector<point> &pVector, double &leftOver, double &rightOver, do
 
 	leftArea = tempLeft + leftOver;
 	rightArea = tempRight + rightOver;
-
-	//cout << "leftArea: " << leftArea << endl;
-	//cout << "rightArea: " << rightArea << endl;
 
 	if( leftArea > rightArea)
 	{
@@ -345,9 +341,8 @@ bool topBotLines(vector<point> pVector, line &botLine, line &topLine)
 		topLine.p1 = topBotPoints[2];
 		topLine.p2 = topBotPoints[3];
 	}
-
-	topLine.slope = (fabs(topLine.p1.y - topLine.p2.y) / fabs(topLine.p1.x - topLine.p2.x));
-	botLine.slope = (fabs(botLine.p1.y - botLine.p2.y) / fabs(botLine.p1.x - botLine.p2.x));
+	
+	return false;
 }
 
 //Corwin
